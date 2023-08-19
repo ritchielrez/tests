@@ -5,25 +5,25 @@
 
 namespace rit
 {
-template <typename T, std::size_t size>
-struct array
-{
-    T m_arr[size];
-
-    T& operator[](const int64_t index)
-    {
-        assert(index >= 0 && "Invalid negative array index");
-        assert(index < size && "Array index access out of bound");
-
-        return m_arr[index];
-    }
-};
-
 template <typename First, typename... Rest>
 struct array_enforce_type
 {
     static_assert(std::conjunction_v<std::is_same<First, Rest>...>, "Make sure all array elements have the same type");
     using type = First;
+};
+
+template <typename T, std::size_t capacity>
+struct array
+{
+    T m_arr[capacity];
+
+    T& operator[](const int64_t index)
+    {
+        assert(index >= 0 && "Invalid negative array index");
+        assert(index < capacity && "Array index access out of bound");
+
+        return m_arr[index];
+    }
 };
 
 template <typename First, typename... Rest>
