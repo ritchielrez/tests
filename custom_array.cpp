@@ -17,6 +17,7 @@ struct array
 {
     T m_arr[capacity];
 
+    // Returning a reference so if user wants to change value of index they can because a reference is returned
     T& operator[](const int64_t index)
     {
         assert(index >= 0 && "Invalid negative array index");
