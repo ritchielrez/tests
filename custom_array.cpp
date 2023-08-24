@@ -20,8 +20,17 @@ struct array
     // Returning a reference so if user wants to change value of index they can because a reference is returned
     T& operator[](const int64_t index)
     {
-        assert(index >= 0 && "Invalid negative array index");
-        assert(index < capacity && "Array index access out of bound");
+        if(index < 0)
+        {
+            std::cerr << "Invalid negative array index\n";
+            exit(EXIT_FAILURE);
+        };
+
+        if(index >= capacity)
+        {
+            std::cerr << "Array index access out of bound\n";
+            exit(EXIT_FAILURE);
+        }
 
         return m_arr[index];
     }
