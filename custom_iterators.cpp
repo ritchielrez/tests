@@ -4,7 +4,7 @@
 #include <iterator>
 
 struct Integers {
-  int m_data[100];
+  int data[100];
 
   class Iterator {
    public:
@@ -45,10 +45,10 @@ struct Integers {
     pointer m_ptr;
   };
 
-  Iterator begin() { return Iterator(&m_data[0]); }
+  Iterator begin() { return Iterator(&data[0]); }
 
   Iterator end() {
-    return Iterator(&m_data[100]);  // Expected behaviour actually
+    return Iterator(&data[100]);  // Expected behaviour actually
   }
 };
 
