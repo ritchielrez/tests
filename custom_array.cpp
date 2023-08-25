@@ -34,6 +34,26 @@ struct array {
     return arr[t_index];
   }
 
+  // Two const qualifiers to indicate that this operator cannot be used to change
+  // value of a specific index. This is meant to be used for const arrays.
+  // The 1st const qualifier makes sure that the operator returns a const ref to
+  // index, implying it is not possible to change the index. The last const qualifier 
+  // in the bottom line is used to imply that this function does not change any 
+  // data members of this class.
+  const T &operator[](const int64_t t_index) const {
+    if (t_index < 0) {
+      std::cerr << "Invalid negative array index\n";
+      exit(EXIT_FAILURE);
+    };
+
+    if (t_index >= capacity) {
+      std::cerr << "Array index access out of bound\n";
+      exit(EXIT_FAILURE);
+    }
+
+    return arr[t_index];
+  }
+
   class iterator {
    public:
     using iterator_category = std::forward_iterator_tag;
@@ -62,7 +82,8 @@ struct array {
     }
 
     // NOTE: when defining functions, variables or arguments, always think where
-    // they should be const-qualified or not meaning do they need to change some data or not
+    // they should be const-qualified or not meaning do they need to change some
+    // data or not
 
     // NOTE: to prevent copies of objects(e.g: iterators) passed to functions
     // consider using references always
@@ -70,7 +91,7 @@ struct array {
       return t_it1.m_ptr == t_it2.m_ptr;
     }
 
-    friend bool operator!=(const iterator &At_it1, const iterator &t_it2) {
+    friend bool operator!=(const iterator &t_it1, const iterator &t_it2) {
       return t_it1.m_ptr != t_it2.m_ptr;
     }
 
