@@ -9,13 +9,13 @@ struct Integers
 
     class Iterator
     {
+      public:
         using iterator_category = std::forward_iterator_tag;
         using difference_type = std::ptrdiff_t;
         using value_type = int;
         using pointer = int *;
         using reference = int &;
 
-      public:
         Iterator(pointer ptr) : m_ptr(ptr)
         {
         }
@@ -76,9 +76,9 @@ int main()
 
     std::fill(ints.begin(), ints.end(), 0);
 
-    for(auto &e: ints)
+    for(auto it = ints.begin(); it != ints.end(); ++it)
     {
-        std::cout << e << " ";
+        std::cout << *it << " ";
     }
     std::cout << "\n";
 
