@@ -16,7 +16,7 @@ struct array_enforce_type {
 
 template <typename T, std::size_t capacity>
 struct array {
-  T m_arr[capacity];
+  T arr[capacity];
 
   // Returning a reference so if user wants to change value of index they can
   // because a reference is returned
@@ -31,7 +31,7 @@ struct array {
       exit(EXIT_FAILURE);
     }
 
-    return m_arr[index];
+    return arr[index];
   }
 
   class iterator {
@@ -84,10 +84,10 @@ struct array {
     using reference = value_type &;
   };
 
-  iterator begin() { return iterator(&m_arr[0]); }
+  iterator begin() { return iterator(&arr[0]); }
 
   iterator end() {
-    return iterator(&m_arr[capacity]);  // end is never reached
+    return iterator(&arr[capacity]);  // end is never reached
   }
 };
 
