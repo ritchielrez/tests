@@ -74,12 +74,14 @@ template <typename T, std::size_t capacity> struct array
             return tmp;
         }
 
-        friend bool operator==(iterator it1, iterator it2)
+        // NOTE: when defining functions, variables or arguments, always they should be const-qualified or not
+        // meaning do they need to change some data or not
+        friend bool operator==(const iterator it1, const iterator it2)
         {
             return it1.m_ptr == it2.m_ptr;
         }
 
-        friend bool operator!=(iterator it1, iterator it2)
+        friend bool operator!=(const iterator it1, const iterator it2)
         {
             return it1.m_ptr != it2.m_ptr;
         }
