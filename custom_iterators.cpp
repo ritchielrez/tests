@@ -14,7 +14,7 @@ struct Integers {
     using pointer = int *;
     using reference = int &;
 
-    Iterator(pointer ptr) : m_ptr(ptr) {}
+    Iterator(pointer t_ptr) : m_ptr(t_ptr) {}
 
     reference operator*() const { return *m_ptr; }
 

@@ -20,18 +20,18 @@ struct array {
 
   // Returning a reference so if user wants to change value of index they can
   // because a reference is returned
-  T &operator[](const int64_t index) {
-    if (index < 0) {
+  T &operator[](const int64_t t_index) {
+    if (t_index < 0) {
       std::cerr << "Invalid negative array index\n";
       exit(EXIT_FAILURE);
     };
 
-    if (index >= capacity) {
+    if (t_index >= capacity) {
       std::cerr << "Array index access out of bound\n";
       exit(EXIT_FAILURE);
     }
 
-    return arr[index];
+    return arr[t_index];
   }
 
   class iterator {
@@ -42,7 +42,7 @@ struct array {
     using pointer = value_type *;
     using reference = value_type &;
 
-    iterator(pointer ptr) : m_ptr(ptr) {}
+    iterator(pointer t_ptr) : m_ptr(t_ptr) {}
 
     reference operator*() { return *m_ptr; }
 
@@ -63,12 +63,12 @@ struct array {
 
     // NOTE: when defining functions, variables or arguments, always they should
     // be const-qualified or not meaning do they need to change some data or not
-    friend bool operator==(const iterator it1, const iterator it2) {
-      return it1.m_ptr == it2.m_ptr;
+    friend bool operator==(const iterator t_it1, const iterator t_it2) {
+      return t_it1.m_ptr == t_it2.m_ptr;
     }
 
-    friend bool operator!=(const iterator it1, const iterator it2) {
-      return it1.m_ptr != it2.m_ptr;
+    friend bool operator!=(const iterator t_it1, const iterator t_it2) {
+      return t_it1.m_ptr != t_it2.m_ptr;
     }
 
    private:
