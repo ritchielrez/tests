@@ -61,13 +61,16 @@ struct array {
       return tmp;
     }
 
-    // NOTE: when defining functions, variables or arguments, always they should
-    // be const-qualified or not meaning do they need to change some data or not
-    friend bool operator==(const iterator t_it1, const iterator t_it2) {
+    // NOTE: when defining functions, variables or arguments, always think where
+    // they should be const-qualified or not meaning do they need to change some data or not
+
+    // NOTE: to prevent copies of objects(e.g: iterators) passed to functions
+    // consider using references always
+    friend bool operator==(const iterator &t_it1, const iterator &t_it2) {
       return t_it1.m_ptr == t_it2.m_ptr;
     }
 
-    friend bool operator!=(const iterator t_it1, const iterator t_it2) {
+    friend bool operator!=(const iterator &At_it1, const iterator &t_it2) {
       return t_it1.m_ptr != t_it2.m_ptr;
     }
 
