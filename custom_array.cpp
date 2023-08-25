@@ -1,33 +1,33 @@
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <iostream>
+#include <iterator>
 #include <type_traits>
 
 namespace rit
 {
-template <typename First, typename... Rest>
-struct array_enforce_type
+template <typename First, typename... Rest> struct array_enforce_type
 {
     static_assert(std::conjunction_v<std::is_same<First, Rest>...>, "Make sure all array elements have the same type");
     using type = First;
 };
 
-template <typename T, std::size_t capacity>
-struct array
+template <typename T, std::size_t capacity> struct array
 {
     T m_arr[capacity];
 
     // Returning a reference so if user wants to change value of index they can because a reference is returned
-    T& operator[](const int64_t index)
+    T &operator[](const int64_t index)
     {
-        if(index < 0)
+        if (index < 0)
         {
             std::cerr << "Invalid negative array index\n";
             exit(EXIT_FAILURE);
         };
 
-        if(index >= capacity)
+        if (index >= capacity)
         {
             std::cerr << "Array index access out of bound\n";
             exit(EXIT_FAILURE);
@@ -35,18 +35,79 @@ struct array
 
         return m_arr[index];
     }
+
+    class iterator
+    {
+      public:
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type = std::ptrdiff_t;
+        using value_type = T;
+        using pointer = value_type *;
+        using reference = value_type &;
+
+        iterator(pointer ptr) : m_ptr(ptr)
+        {
+        }
+
+        reference operator*()
+        {
+            return *m_ptr;
+        }
+
+        pointer operator->()
+        {
+            return m_ptr;
+        }
+
+        iterator &operator++()
+        {
+            m_ptr++;
+            return *this;
+        }
+
+        // This `int` type argument is what c++ uses to differentiate between postfix and prefix operators
+        // This the postfix version
+        iterator &operator++(int)
+        {
+            iterator tmp = *this;
+            m_ptr++;
+            return tmp;
+        }
+
+        friend bool operator==(iterator it1, iterator it2)
+        {
+            return it1.m_ptr == it2.m_ptr;
+        }
+
+        friend bool operator!=(iterator it1, iterator it2)
+        {
+            return it1.m_ptr != it2.m_ptr;
+        }
+
+      private:
+        pointer m_ptr;
+    };
+
+    iterator begin()
+    {
+        return iterator(&m_arr[0]);
+    }
+
+    iterator end()
+    {
+        return iterator(&m_arr[capacity]); // end is never reached
+    }
 };
 
 template <typename First, typename... Rest>
-array(First, Rest...)
-    -> array<typename array_enforce_type<First, Rest...>::type, sizeof...(Rest) + 1>;
-};
+array(First, Rest...) -> array<typename array_enforce_type<First, Rest...>::type, sizeof...(Rest) + 1>;
+}; // namespace rit
 
 int main()
 {
-    rit::array arr {1,2,3,4,5};
+    rit::array arr{1, 2, 3, 4, 5};
 
-    for(const int &e : arr.m_arr)
+    for (const int &e : arr)
     {
         std::cout << e << " ";
     }
@@ -55,4 +116,3 @@ int main()
     arr[0] = 2;
     std::cout << arr[0] << "\n";
 }
-
