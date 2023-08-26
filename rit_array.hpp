@@ -1,5 +1,5 @@
-#ifndef RIT_ARRAY_H_INCLUDED
-#define RIT_ARRAY_H_INCLUDED
+#ifndef RIT_ARRAY_HPP_INCLUDED
+#define RIT_ARRAY_HPP_INCLUDED
 
 #include <cassert>
 #include <cstddef>
@@ -132,7 +132,7 @@ array(First, Rest...)
              sizeof...(Rest) + 1>;
 };  // namespace rit
 
-#endif  // RIT_ARRAY_H_INCLUDED
+#endif  // RIT_ARRAY_HPP_INCLUDED
 
 #ifdef RIT_ARRAY_IMPLEMENTATION
 
