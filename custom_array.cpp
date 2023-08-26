@@ -34,12 +34,12 @@ struct array {
     return arr[t_index];
   }
 
-  // Two const qualifiers to indicate that this operator cannot be used to change
-  // value of a specific index. This is meant to be used for const arrays.
-  // The 1st const qualifier makes sure that the operator returns a const ref to
-  // index, implying it is not possible to change the index. The last const qualifier 
-  // in the bottom line is used to imply that this function does not change any 
-  // data members of this class.
+  // Two const qualifiers to indicate that this operator cannot be used to
+  // change value of a specific index. This is meant to be used for const
+  // arrays. The 1st const qualifier makes sure that the operator returns a
+  // const ref to index, implying it is not possible to change the index. The
+  // last const qualifier in the bottom line is used to imply that this function
+  // does not change any data members of this class.
   const T &operator[](const int64_t t_index) const {
     if (t_index < 0) {
       std::cerr << "Invalid negative array index\n";
@@ -99,6 +99,12 @@ struct array {
     pointer m_ptr;
   };
 
+  iterator begin() { return iterator(&arr[0]); }
+
+  iterator end() {
+    return iterator(&arr[capacity]);  // end is never reached
+  }
+
   class const_iterator {
    public:
     using iterator_category = std::forward_iterator_tag;
@@ -106,13 +112,37 @@ struct array {
     using value_type = T;
     using pointer = value_type *;
     using reference = value_type &;
+
+    const_iterator(pointer t_ptr) : m_ptr(t_ptr) {}
+
+    const reference operator*() const { return *m_ptr; }
+    const pointer operator->() const { return m_ptr; }
+
+    const const_iterator &operator++() {
+      m_ptr++;
+      return *this;
+    }
+    const const_iterator &operator++(int) {
+      const_iterator &tmp = *this;
+      m_ptr++;
+      return tmp;
+    }
+
+    friend bool operator==(const const_iterator &t_it1,
+                           const const_iterator &t_it2) {
+      return t_it1.m_ptr == t_it2.m_ptr;
+    }
+    friend bool operator!=(const const_iterator &t_it1,
+                           const const_iterator &t_it2) {
+      return t_it1.m_ptr != t_it2.m_ptr;
+    }
+
+   private:
+    pointer m_ptr;
   };
 
-  iterator begin() { return iterator(&arr[0]); }
-
-  iterator end() {
-    return iterator(&arr[capacity]);  // end is never reached
-  }
+  const_iterator cbegin() { return const_iterator(&arr[0]); }
+  const_iterator cend() { return const_iterator(&arr[capacity]); }
 };
 
 template <typename First, typename... Rest>
@@ -124,8 +154,8 @@ array(First, Rest...)
 int main() {
   rit::array arr{1, 2, 3, 4, 5};
 
-  for (const int &e : arr) {
-    std::cout << e << " ";
+  for (auto it = arr.cbegin(); it != arr.cend(); ++it) {
+    std::cout << *it << " ";
   }
   std::cout << "\n";
 
