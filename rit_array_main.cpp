@@ -2,7 +2,7 @@
 #include <iostream>
 
 #define RIT_ARRAY_IMPLEMENTATION
-#include "./custom_array.hpp"
+#include "./rit_array.hpp"
 
 int main() {
   rit::array arr{1, 2, 3, 4, 5};
