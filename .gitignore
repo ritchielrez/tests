@@ -26,6 +26,11 @@
 *.a
 *.lib
 
+# Visual studio artifacts
+.vs
+*.ilk
+*.pdb
+
 # Executables
 *.exe
 *.out
