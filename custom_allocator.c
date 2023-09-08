@@ -39,6 +39,11 @@ size_t my_malloc(size_t t_size_bytes) {
   // bytes mem_block[sizeof(void*)];
 
   // Allocate space for the metadata structure first
+
+  // TODO(Ritchiel): I was trying to split the `metadata_addr` in individual
+  // bytes and store them in the `heap` array. Apparently, this is not
+  // recommended to manipulate memory addresses like this. This is probably
+  // related to strict aliasing rule. So this program is incomplete for now.
   bytes metadata_addr_in_bytes[sizeof(uintptr_t)];
 
   for (size_t i = 0; i < sizeof(uintptr_t); ++i) {
