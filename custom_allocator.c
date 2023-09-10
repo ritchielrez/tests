@@ -44,7 +44,6 @@ size_t my_malloc(size_t t_size_bytes) {
   // bytes and store them in the `heap` array. Apparently, this is not
   // recommended to manipulate memory addresses like this. This is probably
   // related to strict aliasing rule. So this program is incomplete for now.
-  //
   // https://stackoverflow.com/questions/98650/what-is-the-strict-aliasing-rule
   bytes metadata_addr_in_bytes[sizeof(uintptr_t)];
 
