@@ -1,6 +1,6 @@
 #include <assert.h>
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #define true 1
@@ -10,7 +10,7 @@
 
 typedef uint8_t bytes;
 
-// A monotonic allocator first allocates a buffer and stores the current 
+// A monotonic allocator first allocates a buffer and stores the current
 // free position of it in a variable. This variable is incremented when
 // some memory is allocated in the buffer. A monotonic allocator cannot
 // deallocate some specific chunk of memory, because you have to deallocate
@@ -23,6 +23,16 @@ typedef struct {
   size_t m_current;
 } MonotonicAllocator;
 
+MonotonicAllocator MonotonicAllocatorInit(size_t t_capacity) {
+  MonotonicAllocator allocator = {
+      .m_buffer = (bytes *)malloc(sizeof(bytes) * t_capacity),
+      .m_capacity = t_capacity,
+      .m_current = 0};
+  return allocator;
+}
+
+void MonotonicAllocatorFree(void *t_buffer) { free(t_buffer); }
+
 void *alloc(MonotonicAllocator *t_allocator, size_t t_size) {
   if (t_allocator->m_current + t_size > t_allocator->m_capacity) {
     return nullptr;
@@ -33,21 +43,19 @@ void *alloc(MonotonicAllocator *t_allocator, size_t t_size) {
   return ptr;
 }
 
-void release(MonotonicAllocator* t_allocator) {
-  t_allocator->m_current = 0;
-}
+void release(MonotonicAllocator *t_allocator) { t_allocator->m_current = 0; }
 
 // No-op function, as this allocator cannot free up individual chunks
-void free(void* ptr) { (void *)ptr; }
+void free(void *ptr) { (void *)ptr; }
 
 int main() {
-  MonotonicAllocator allocator = {
-      .m_buffer = (bytes *)malloc(sizeof(bytes) * 1024),
-      .m_capacity = 1024,
-      .m_current = 0
-  };
+  // MonotonicAllocator allocator = {
+  //     .m_buffer = (bytes *)malloc(sizeof(bytes) * 1024),
+  //     .m_capacity = 1024,
+  //     .m_current = 0};
+  MonotonicAllocator allocator = MonotonicAllocatorInit(1024);
 
-  bytes *buffer = (bytes*)alloc(&allocator, 1);
+  bytes *buffer = (bytes *)alloc(&allocator, 1);
 
   // Here is the thing, we only allocated only one byte for this buffer,
   // but actually this buffer pointer has access to the whole monotonic
@@ -58,8 +66,9 @@ int main() {
   }
   printf("\n");
 
-  free(allocator.m_buffer);
-  release(&allocator);
+  MonotonicAllocatorFree(allocator.m_buffer);
+
+  // free(allocator.m_buffer);
   assert(false);
   return 0;
 }
