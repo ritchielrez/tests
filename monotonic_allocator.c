@@ -10,7 +10,7 @@
 
 typedef uint8_t bytes;
 
-// A monotonic allocator first allocates a buffer and stores the current
+// NOTE: A monotonic allocator first allocates a buffer and stores the current
 // free position of it in a variable. This variable is incremented when
 // some memory is allocated in the buffer. A monotonic allocator cannot
 // deallocate some specific chunk of memory, because you have to deallocate
@@ -45,7 +45,7 @@ void *alloc(MonotonicAllocator *t_allocator, size_t t_size) {
 
 void release(MonotonicAllocator *t_allocator) { t_allocator->m_current = 0; }
 
-// No-op function, as this allocator cannot free up individual chunks
+// NOTE: No-op function, as this allocator cannot free up individual chunks
 void free(void *ptr) { (void *)ptr; }
 
 int main() {
@@ -57,7 +57,7 @@ int main() {
 
   bytes *buffer = (bytes *)alloc(&allocator, 1);
 
-  // Here is the thing, we only allocated only one byte for this buffer,
+  // NOTE: Here is the thing, we only allocated only one byte for this buffer,
   // but actually this buffer pointer has access to the whole monotonic
   // allocator buffer.
   for (int i = 0; i < 1024; ++i) {
