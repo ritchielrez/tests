@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define true 1
 #define false 0
@@ -33,12 +34,14 @@ MonotonicAllocator MonotonicAllocatorInit(size_t t_capacity) {
 
 void MonotonicAllocatorFree(void *t_buffer) { free(t_buffer); }
 
+// NOTE: This function also initializes the allocated chunk to 0
 void *alloc(MonotonicAllocator *t_allocator, size_t t_size) {
   if (t_allocator->m_current + t_size > t_allocator->m_capacity) {
     return nullptr;
   }
 
   void *ptr = t_allocator->m_buffer + t_allocator->m_current;
+  memset(ptr, 0, t_size);
   t_allocator->m_current += t_size;
   return ptr;
 }
@@ -64,7 +67,11 @@ int main() {
     buffer[i] = 'A';
     printf("%d\n", buffer[i]);
   }
-  printf("\n");
+
+  int *int_arr = (int *)alloc(&allocator, sizeof(int) * 4);
+  for(int i = 0; i < 4; ++i) {
+    printf("%d\n", int_arr[i]);
+  }
 
   MonotonicAllocatorFree(allocator.m_buffer);
 
