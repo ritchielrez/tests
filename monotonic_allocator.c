@@ -37,6 +37,9 @@ void release(MonotonicAllocator* t_allocator) {
   t_allocator->m_current = 0;
 }
 
+// No-op function, as this allocator cannot free up individual chunks
+void free(void* ptr) { (void *)ptr; }
+
 int main() {
   MonotonicAllocator allocator = {
       .m_buffer = (bytes *)malloc(sizeof(bytes) * 1024),
