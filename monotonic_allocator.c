@@ -35,7 +35,13 @@ MonotonicAllocator MonotonicAllocatorInit(size_t t_capacity) {
 void MonotonicAllocatorFree(void *t_buffer) { free(t_buffer); }
 
 // NOTE: This function also initializes the allocated chunk to 0
+// and makes sure that the starting memory address starts at a
+// specific bound multiple to 8
 void *alloc(MonotonicAllocator *t_allocator, size_t t_size) {
+  if (t_size & 7) {
+    t_size = (t_size + 8) & (~7);
+  }
+
   if (t_allocator->m_current + t_size > t_allocator->m_capacity) {
     return nullptr;
   }
@@ -58,7 +64,7 @@ int main() {
   //     .m_current = 0};
   MonotonicAllocator allocator = MonotonicAllocatorInit(1024);
 
-  bytes *buffer = (bytes *)alloc(&allocator, 1);
+  bytes *buffer = (bytes *)alloc(&allocator, 17);
 
   // NOTE: Here is the thing, we only allocated only one byte for this buffer,
   // but actually this buffer pointer has access to the whole monotonic
@@ -69,7 +75,7 @@ int main() {
   }
 
   int *int_arr = (int *)alloc(&allocator, sizeof(int) * 4);
-  for(int i = 0; i < 4; ++i) {
+  for (int i = 0; i < 4; ++i) {
     printf("%d\n", int_arr[i]);
   }
 
