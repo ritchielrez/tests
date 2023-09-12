@@ -57,6 +57,15 @@ void *alloc(MonotonicAllocator *t_allocator, size_t t_size) {
   return ptr;
 }
 
+void *reallocate(MonotonicAllocator *t_allocator, void *t_ptr, size_t t_size) {
+  void *ptr = alloc(t_allocator, t_size);
+  memmove(ptr, t_ptr, t_size);
+#ifdef DEBUG
+  printf("[DEBUG] Memory reallocated, the address: %p\n", ptr);
+#endif
+  return ptr;
+}
+
 void release(MonotonicAllocator *t_allocator) { t_allocator->m_current = 0; }
 
 // NOTE: No-op function, as this allocator cannot free up individual chunks
@@ -78,6 +87,8 @@ int main() {
     buffer[i] = 'A';
     printf("%d\n", buffer[i]);
   }
+
+  buffer = (bytes *)reallocate(&allocator, buffer, 26);
 
   int *int_arr = (int *)alloc(&allocator, sizeof(int) * 4);
   for (int i = 0; i < 4; ++i) {
