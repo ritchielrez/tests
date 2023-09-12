@@ -49,6 +49,11 @@ void *alloc(MonotonicAllocator *t_allocator, size_t t_size) {
   void *ptr = t_allocator->m_buffer + t_allocator->m_current;
   memset(ptr, 0, t_size);
   t_allocator->m_current += t_size;
+
+#ifdef DEBUG
+  printf("[DEBUG] Allocated %zu bytes of memory\n", t_size);
+#endif
+
   return ptr;
 }
 
@@ -82,6 +87,6 @@ int main() {
   MonotonicAllocatorFree(allocator.m_buffer);
 
   // free(allocator.m_buffer);
-  assert(false);
+  // assert(false);
   return 0;
 }
