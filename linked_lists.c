@@ -1,60 +1,140 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <stdlib.h>
 
-#define true 1
-#define false 0
+#define true (uint8_t)1
+#define false (uint8_t)0
 
 #define nullptr 0
 
 typedef struct Node Node;
+typedef struct List List;
 
 struct Node {
-  int value;
-  // NOTE: Because Node struct is not implemented yet, we have declared it
-  // before so a Node struct can contain a pointer to the next Node struct.
-  Node *next;
+  int m_value;
+  Node *m_next;
+};
+
+struct List {
+  Node *m_head;
 };
 
 Node *node_create(int t_value) {
-  Node *node = malloc(sizeof(Node));
-  node->value = t_value;
-  node->next = nullptr;
-
-  return node;
+  Node *new_node = malloc(sizeof(Node));
+  new_node->m_value = t_value;
+  new_node->m_next = nullptr;
+  return new_node;
 }
 
-Node *node_next(Node *t_head, int t_value) {
-  // NOTE: `node` is going to hold here a newly created temporary node
-  Node *node, *node_next;
-  node = node_create(t_value);
-
-  // NOTE: Check if the head node actually is not a nullptr, if it is
-  // then return the temporary created node
-  if (t_head == nullptr) {
-    return node;
-  }
-
-  node_next = t_head;
-  while (node_next->next != nullptr) {
-    node_next = node_next->next;
-  }
-
-  node_next->next = node;
-  return node;
+Node* node_create_after(Node* t_node_before, int t_value) {
+  Node *new_node = node_create(t_value);
+  t_node_before->m_next = new_node;
+  return new_node;
 }
 
-// Remove the next node of the node given as the given parameter
-void node_remove_after(Node *t_node) {
-  t_node->next = t_node->next->next;
+void node_remove(Node *t_node_before, Node **t_node) {
+  if (t_node == nullptr || *t_node == nullptr) {
+    fprintf(stderr, "No valid node provided to remove\n");
+    exit(1);
+  }
+
+  Node *new_node = (*t_node)->m_next;
+  t_node_before->m_next = new_node;
+  free(*t_node);
+  *t_node = nullptr;
+}
+
+List *list_create(int t_value) {
+  List *new_list = malloc(sizeof(List));
+  new_list->m_head = node_create(t_value);
+  return new_list;
+}
+
+void list_node_create_at_head(List **t_list, int t_value) { 
+  if (t_list == nullptr || (*t_list)->m_head == nullptr) {
+    fprintf(stderr, "No valid list provided to create a node at it's head\n");
+    exit(1);
+  }
+
+  Node *new_node = node_create(t_value);
+  new_node->m_next = (*t_list)->m_head;
+
+  (*t_list)->m_head = new_node;
+}
+
+void list_node_create_at_end(List **t_list, int t_value) {
+  if (t_list == nullptr || (*t_list)->m_head == nullptr) {
+    fprintf(stderr, "No valid list provided to create a node at it's end\n");   
+    exit(1);
+  }
+
+  Node *new_node = node_create(t_value);
+  Node *current_node = (*t_list)->m_head;
+
+  while (current_node->m_next != nullptr) {
+    current_node = current_node->m_next;
+  }
+  current_node->m_next = new_node;
+}
+
+void list_remove_head(List **t_list) {
+  if (t_list == nullptr || (*t_list)->m_head == nullptr) {
+    fprintf(stderr, "No valid list provided to remove it's head\n");   
+    exit(1);
+  }
+
+  (*t_list)->m_head = (*t_list)->m_head->m_next;
+}
+
+void list_node_remove_at_end(List** t_list) { 
+  if (t_list == nullptr || (*t_list)->m_head == nullptr) {
+    fprintf(stderr, "No valid list provided to remove from end\n");
+    exit(1);
+  }
+
+  Node *current_node = (*t_list)->m_head;
+
+  while (current_node->m_next->m_next != nullptr) {
+    current_node = current_node->m_next;
+  }
+  node_remove(current_node, &(current_node->m_next));
+}
+
+Node *list_search_by_value(List **t_list, int t_value) {
+  if (t_list == nullptr || (*t_list)->m_head == nullptr) {
+    fprintf(stderr, "No valid list provided to search in\n");   
+    exit(1);
+  }
+
+  Node *result_node = (*t_list)->m_head;
+  while (result_node != nullptr) {
+    if (result_node->m_value == t_value) {
+      return result_node;
+    }
+    result_node = result_node->m_next;
+  }
+
+  printf("Provided value %d was not found in the provided list\n", t_value);   
+  return nullptr;
 }
 
 int main() {
-  Node *node1 = node_create(0);
-  Node *node2 = node_next(node1, 1);
-  Node *node3 = node_next(node2, 2);
+  Node *node1 = node_create(1);
+  Node *node2 = node_create_after(node1, 2);
+  Node **node2_addr = &node2;
+  Node *node3 = node_create_after(node2, 3);
+  
+  List *list = list_create(1);
+  list_node_create_at_head(&list, 0);
+  list_node_create_at_end(&list, 2);
+  list_node_create_at_end(&list, 3);
+  list_remove_head(&list);
+  list_node_remove_at_end(&list);
 
-  node_remove_after(node2);
+  Node *node_found_with_val_2 = list_search_by_value(&list, 2);
 
-  //assert(false);
+  node_remove(node1, &node2);
+
+  return 0;
 }
