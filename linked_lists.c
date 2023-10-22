@@ -92,7 +92,7 @@ void list_remove_head(List **t_list) {
   (*t_list)->m_head = (*t_list)->m_head->m_next;
 }
 
-void list_node_remove_at_end(List** t_list) { 
+void list_remove_node_at_end(List** t_list) { 
   if (t_list == nullptr || *t_list == nullptr || (*t_list)->m_head == nullptr) {
     fprintf(stderr, "No valid list provided to remove from end\n");
     exit(1);
