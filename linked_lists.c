@@ -41,8 +41,6 @@ void node_remove(Node *t_node_before, Node **t_node) {
 
   Node *new_node = (*t_node)->m_next;
   t_node_before->m_next = new_node;
-  free(*t_node);
-  *t_node = nullptr;
 }
 
 List *list_create(int t_value) {
