@@ -169,6 +169,25 @@ size_t list_get_length(List **t_list) {
   return length;
 }
 
+int list_get_value_at_pos(List** t_list, size_t t_pos) {
+  if (t_list == nullptr || *t_list == nullptr || (*t_list)->m_head == nullptr) {
+    fprintf(stderr, "No valid list provided to get the value of a specific position in the list\n");
+    exit(1);
+  }
+
+  Node *current_node = (*t_list)->m_head;
+  for (size_t i = 0; i < t_pos && current_node != nullptr; ++i) {
+    current_node = current_node->m_next;
+  }
+
+  if (current_node == nullptr) {
+    fprintf(stderr, "No valid node found in the specified position\n");
+    exit(1);
+  }
+
+  return current_node->m_value;
+}
+
 int main() {
   Node *node1 = node_create(1);
   Node *node2 = node_create_after(node1, 2);
@@ -191,6 +210,8 @@ int main() {
   list_node_remove_at_pos(&list, 2);  // list = [1,3,2]
 
   Node *node_found_with_val_2 = list_search_by_value(&list, 2);
+  
+  int list_3rd_element = list_get_value_at_pos(&list, 2);
 
   node_remove(node1, &node2);
 
