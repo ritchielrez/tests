@@ -1,6 +1,6 @@
 #include <assert.h>
-#include <stdio.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #define true (uint8_t)1
@@ -27,7 +27,7 @@ Node *node_create(int t_value) {
   return new_node;
 }
 
-Node* node_create_after(Node* t_node_before, int t_value) {
+Node *node_create_after(Node *t_node_before, int t_value) {
   Node *new_node = node_create(t_value);
   t_node_before->m_next = new_node;
   return new_node;
@@ -49,7 +49,7 @@ List *list_create(int t_value) {
   return new_list;
 }
 
-void list_node_create_at_head(List **t_list, int t_value) { 
+void list_node_create_at_head(List **t_list, int t_value) {
   if (t_list == nullptr || *t_list == nullptr || (*t_list)->m_head == nullptr) {
     fprintf(stderr, "No valid list provided to create a node at it's head\n");
     exit(1);
@@ -63,7 +63,7 @@ void list_node_create_at_head(List **t_list, int t_value) {
 
 void list_node_create_at_end(List **t_list, int t_value) {
   if (t_list == nullptr || *t_list == nullptr || (*t_list)->m_head == nullptr) {
-    fprintf(stderr, "No valid list provided to create a node at it's end\n");   
+    fprintf(stderr, "No valid list provided to create a node at it's end\n");
     exit(1);
   }
 
@@ -78,21 +78,36 @@ void list_node_create_at_end(List **t_list, int t_value) {
 
 void list_node_create_at_pos(List **t_list, int t_value, size_t t_pos) {
   if (t_list == nullptr || *t_list == nullptr || (*t_list)->m_head == nullptr) {
-    fprintf(stderr, "No valid list provided to create a node at it's end\n");
+    fprintf(stderr, "No valid list provided to create a node\n");
     exit(1);
   }
+
+  Node *current_node = (*t_list)->m_head;
+
+  for (size_t i = 0; i < t_pos - 1 && current_node != nullptr; ++i) {
+    current_node = current_node->m_next;
+  }
+
+  if (current_node == nullptr) {
+    fprintf(stderr, "Specified position in the provided list does not exist\n");
+    exit(1);
+  }
+
+  Node *new_node = node_create(t_value);
+  new_node->m_next = current_node->m_next;
+  current_node->m_next = new_node;
 }
 
 void list_remove_head(List **t_list) {
   if (t_list == nullptr || *t_list == nullptr || (*t_list)->m_head == nullptr) {
-    fprintf(stderr, "No valid list provided to remove it's head\n");   
+    fprintf(stderr, "No valid list provided to remove it's head\n");
     exit(1);
   }
 
   (*t_list)->m_head = (*t_list)->m_head->m_next;
 }
 
-void list_remove_node_at_end(List** t_list) { 
+void list_remove_node_at_end(List **t_list) {
   if (t_list == nullptr || *t_list == nullptr || (*t_list)->m_head == nullptr) {
     fprintf(stderr, "No valid list provided to remove from end\n");
     exit(1);
@@ -106,9 +121,22 @@ void list_remove_node_at_end(List** t_list) {
   node_remove(current_node, &(current_node->m_next));
 }
 
+void list_node_remove_at_pos(List **t_list, size_t t_pos) {
+  if (t_list == nullptr || *t_list == nullptr || (*t_list)->m_head == nullptr) {
+    fprintf(stderr, "No valid list provided to remove a specific node\n");
+    exit(1);
+  }
+
+  Node *current_node = (*t_list)->m_head;
+  for (size_t i = 0; i < t_pos - 1 && current_node != nullptr; ++i) {
+    current_node = current_node->m_next;
+  }
+  node_remove(current_node, &(current_node->m_next));
+}
+
 Node *list_search_by_value(List **t_list, int t_value) {
   if (t_list == nullptr || *t_list == nullptr || (*t_list)->m_head == nullptr) {
-    fprintf(stderr, "No valid list provided to search in\n");   
+    fprintf(stderr, "No valid list provided to search in\n");
     exit(1);
   }
 
@@ -120,11 +148,11 @@ Node *list_search_by_value(List **t_list, int t_value) {
     result_node = result_node->m_next;
   }
 
-  printf("Provided value %d was not found in the provided list\n", t_value);   
+  printf("Provided value %d was not found in the provided list\n", t_value);
   return nullptr;
 }
 
-size_t list_get_length(List** t_list) {
+size_t list_get_length(List **t_list) {
   if (t_list == nullptr || *t_list == nullptr || (*t_list)->m_head == nullptr) {
     fprintf(stderr, "No valid list provided to get it's length\n");
     exit(1);
@@ -146,13 +174,21 @@ int main() {
   Node *node2 = node_create_after(node1, 2);
   Node **node2_addr = &node2;
   Node *node3 = node_create_after(node2, 3);
-  
-  List *list = list_create(1);
-  list_node_create_at_head(&list, 0);
-  list_node_create_at_end(&list, 2);
-  list_node_create_at_end(&list, 3);
-  list_remove_head(&list);
-  list_node_remove_at_end(&list);
+
+  List *list = list_create(1);  // list = [1]
+
+  list_node_create_at_head(&list, 0);  // list = [0,1]
+  list_node_create_at_end(&list, 2);   // list = [0,1,2]
+  list_node_create_at_end(&list, 3);   // list = [0,1,2,3]
+
+  list_remove_head(&list);         // list = [1,2,3]
+  list_remove_node_at_end(&list);  // list = [1,2]
+
+  list_node_create_at_pos(&list, 3, 1);  // list = [1,3,2]
+  list_node_create_at_pos(&list, 3, 2);  // list = [1,3,3,2]
+  // list_node_create_at_pos(&list, 3, 5); // error
+
+  list_node_remove_at_pos(&list, 2);  // list = [1,3,2]
 
   Node *node_found_with_val_2 = list_search_by_value(&list, 2);
 
@@ -161,7 +197,7 @@ int main() {
   size_t list_length = list_get_length(&list);
 
   List *null_list = nullptr;
-  list_node_create_at_head(&null_list, 0);
+  // list_node_create_at_head(&null_list, 0); // error
 
   return 0;
 }
