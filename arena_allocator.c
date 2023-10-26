@@ -83,6 +83,17 @@ void *arena_alloc(Arena *t_arena, size_t t_size_in_bytes) {
   return result;
 }
 
+/// @brief Resets the allocated chunk count of an arena
+/// @param t_arena The arena that will be resetted
+/// @retrun void
+void arena_reset(Arena *t_arena) {
+  Buffer *current_buffer = t_arena->begin;
+  while (current_buffer != nullptr) {
+    current_buffer->m_chunk_current_count = 0;
+    current_buffer = current_buffer->m_next;
+  }
+}
+
 /// @brief Frees up an arena
 /// @param t_arena The arena that will be freed
 /// @return void
@@ -103,15 +114,24 @@ void arena_free(Arena *t_arena) {
 }
 
 int main() {
-  Arena default_arena = {nullptr};
+  Arena default_arena = {nullptr, nullptr};
 
   char *str = (char *)arena_alloc(&default_arena, 256);
   strcpy(str, "Hello World!\n");
   printf("%s\n", str);
+  // Even though we are accessing memory completely out of the bounds
+  // of the region, where the string has been allocated, the statement
+  // below yet does not cause any error. This is not still recommended
+  // to do though, because this is acttually an undefined behaviour :)
+  // str[70000] = nullptr;
 
-  char *str2 =
-      (char *)arena_alloc(&default_arena, DEFAULT_CHUNK_MAX_COUNT * 10);
-  strcpy(str2, "Hello World again!\n");
+  char *str2 = (char *)arena_alloc(&default_arena, DEFAULT_CHUNK_MAX_COUNT * 8);
+  size_t i;
+  for (i = 0; i < (DEFAULT_CHUNK_MAX_COUNT * 8) - 1; ++i) {
+    str2[i] = 'H';
+  }
+  str2[i] = '\0';
+  // strcpy(str2, "Hello World again!\n");
   printf("%s\n", str2);
 
   char *str3 =
@@ -119,6 +139,7 @@ int main() {
   strcpy(str3, "This is getting too much though -.- \n");
   printf("%s\n", str3);
 
+  arena_reset(&default_arena);
   arena_free(&default_arena);
 
   return 0;
