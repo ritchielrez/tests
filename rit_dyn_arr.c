@@ -38,6 +38,11 @@ void *libc_realloc(void *t_ctx, void *t_old_ptr, size_t t_old_size_in_bytes,
   return realloc(t_old_ptr, t_new_size_in_bytes);
 }
 
+#define rit_dyn_arr_for_each(t_it, t_rit_dyn_arr)    \
+  for (typeof(rit_dyn_arr_begin(t_rit_dyn_arr)) it = \
+           rit_dyn_arr_begin(t_rit_dyn_arr);         \
+       it < rit_dyn_arr_end(t_rit_dyn_arr); it++)
+
 int main() {
   Arena arena = {nullptr, nullptr};
   rit_dyn_arr_allocator ctx_allocator = {libc_malloc, libc_free, libc_realloc,
