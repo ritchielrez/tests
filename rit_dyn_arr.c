@@ -7,6 +7,8 @@
 #define ARENA_ALLOCATOR_IMPLEMENTATION
 #include "../arena_allocator/arena_allocator.h"
 
+#pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
+
 void *arena_allocator_alloc(void *t_arena, size_t t_size_in_bytes) {
   return arena_alloc((Arena *)t_arena, t_size_in_bytes);
 }
