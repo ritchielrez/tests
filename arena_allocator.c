@@ -13,6 +13,19 @@
 typedef struct Buffer Buffer;
 typedef struct Arena Arena;
 
+typedef struct {
+  const char *name;
+  unsigned int age;
+} Player;
+
+// Macros related to arena allocator
+#define arena_alloc_arr(arena, type, count) \
+  ((type *)arena_alloc(arena, sizeof(type) * count))
+#define arena_alloc_struct(arena, type) \
+  ((type *)arena_alloc(arena, sizeof(type)))
+
+// Arena allocator
+
 /// @brief Holds data as uintptr(usually 8 byte) chunks.
 ///
 /// Buffers are just like nodes in a linked list
@@ -46,12 +59,12 @@ void buffer_free(Buffer *t_buffer) { free(t_buffer); }
 /// @brief Arena is just a growing list of buffers.
 ///
 /// An arena usually looks like this:
-/// begin -> next buffer -> active buffer
+/// m_begin -> next buffer -> active buffer
 struct Arena {
   /// contains the starting buffer
-  Buffer *begin;
+  Buffer *m_begin;
   /// contains the active buffer
-  Buffer *end;
+  Buffer *m_active;
 };
 
 /// @brief Allocate some data inside an arena.
@@ -63,31 +76,86 @@ struct Arena {
 /// @param t_size_in_bytes The requested number of bytes to be allocated
 /// @return void*
 void *arena_alloc(Arena *t_arena, size_t t_size_in_bytes) {
+  if (t_arena == nullptr) {
+    fprintf(stderr, "Error, no valid arena was provided\n");
+    exit(EXIT_FAILURE);
+  }
+
   // To understand the following code, you need to have proper knowledge about
   // memory alignment. Align the requsted size to 8 bytes
   t_size_in_bytes = t_size_in_bytes + (sizeof(uintptr_t) - 1);
   size_t chunk_count = t_size_in_bytes / sizeof(uintptr_t);
 
-  if (t_arena->end == nullptr) {
-    // If there is no active buffer in an arena, there also should not be a
+  if (t_arena->m_active == nullptr) {
+    // If there is no active buffer in an t_arena, there also should not be a
     // starting buffer
-    assert(t_arena->begin == nullptr);
+    assert(t_arena->m_begin == nullptr);
     size_t chunk_max_count = DEFAULT_CHUNK_MAX_COUNT;
     if (chunk_max_count < chunk_count) chunk_max_count = chunk_count;
-    t_arena->end = buffer_new(chunk_max_count);
-    t_arena->begin = t_arena->end;
+    t_arena->m_active = buffer_new(chunk_max_count);
+    t_arena->m_begin = t_arena->m_active;
   }
 
-  void *result = &(t_arena->end->m_data[t_arena->end->m_chunk_current_count]);
-  t_arena->end->m_chunk_current_count += chunk_count;
+  if (t_arena->m_active->m_chunk_current_count + chunk_count >
+      t_arena->m_active->m_chunk_max_count) {
+    size_t chunk_max_count = DEFAULT_CHUNK_MAX_COUNT;
+    if (chunk_max_count < chunk_count) chunk_max_count = chunk_count;
+    t_arena->m_active->m_next = buffer_new(chunk_max_count);
+    t_arena->m_active = t_arena->m_active->m_next;
+  }
+
+  void *result =
+      &(t_arena->m_active->m_data[t_arena->m_active->m_chunk_current_count]);
+  t_arena->m_active->m_chunk_current_count += chunk_count;
+  return result;
+}
+
+/// @brief Resize some old data insdie an arena
+///
+/// The allocated data are stored in a buffer.
+/// If the data is too big, a new buffer will be created.
+///
+/// @param t_arena The arena where data gets allocated
+/// @param t_old_ptr The old ptr where the data is held
+/// @param t_old_size_in_bytes The size of the old pointer
+/// @param t_new_size_in_bytes The size of the new pointer
+/// @return void*
+void *arena_realloc(Arena *t_arena, void *t_old_ptr, size_t t_old_size_in_bytes,
+                    size_t t_new_size_in_bytes) {
+  if (t_arena == nullptr) {
+    fprintf(stderr, "Error, no valid arena was provided\n");
+    exit(EXIT_FAILURE);
+  }
+
+  t_old_size_in_bytes = t_old_size_in_bytes + (sizeof(uintptr_t) - 1);
+  size_t old_chunk_count = t_old_size_in_bytes / sizeof(uintptr_t);
+  t_new_size_in_bytes = t_new_size_in_bytes + (sizeof(uintptr_t) - 1);
+  size_t new_chunk_count = t_new_size_in_bytes / sizeof(uintptr_t);
+  if (old_chunk_count >= new_chunk_count) {
+    return t_old_ptr;
+  }
+
+  void *result = arena_alloc(t_arena, t_new_size_in_bytes);
+  char *old_ptr_bytes = t_old_ptr;
+  char *new_ptr_bytes = result;
+
+  for (size_t i = 0; i < t_old_size_in_bytes; ++i) {
+    new_ptr_bytes[i] = old_ptr_bytes[i];
+  }
+
   return result;
 }
 
 /// @brief Resets the allocated chunk count of an arena
 /// @param t_arena The arena that will be resetted
-/// @retrun void
+/// @return void
 void arena_reset(Arena *t_arena) {
-  Buffer *current_buffer = t_arena->begin;
+  if (t_arena == nullptr) {
+    fprintf(stderr, "Error, no valid arena was provided\n");
+    exit(EXIT_FAILURE);
+  }
+
+  Buffer *current_buffer = t_arena->m_begin;
   while (current_buffer != nullptr) {
     current_buffer->m_chunk_current_count = 0;
     current_buffer = current_buffer->m_next;
@@ -98,9 +166,16 @@ void arena_reset(Arena *t_arena) {
 /// @param t_arena The arena that will be freed
 /// @return void
 void arena_free(Arena *t_arena) {
-  Buffer *current_buffer = t_arena->begin;
+  if (t_arena == nullptr) {
+    fprintf(stderr, "Error, no valid arena was provided\n");
+    exit(EXIT_FAILURE);
+  }
+
+  Buffer *current_buffer = t_arena->m_begin;
   while (current_buffer->m_next != nullptr) {
     Buffer *next_buffer = current_buffer->m_next;
+    current_buffer->m_chunk_max_count = 0;
+    current_buffer->m_chunk_current_count = 0;
     free(current_buffer);
     current_buffer = next_buffer;
   }
@@ -109,38 +184,90 @@ void arena_free(Arena *t_arena) {
   // because this ensures that by accessing any freed pointers
   // does not cause undefined behaviours, even though accessing
   // null values do cause them too, it is more easily debuggable.
-  t_arena->begin = nullptr;
-  t_arena->end = nullptr;
+  t_arena->m_begin = nullptr;
+  t_arena->m_active = nullptr;
 }
+
+typedef struct {
+  void *(*alloc)(void *, size_t);
+  void (*free)(void *, void *);
+} allocator;
+
+void *allocator_arena_alloc(void *t_arena, size_t t_size_in_bytes) {
+  return arena_alloc((Arena *)t_arena, t_size_in_bytes);
+}
+
+void allocator_arena_free(void *t_ptr, void *t_arena) {
+  (void)t_ptr;
+  arena_free(t_arena);
+}
+
+void *allocator_libc_malloc(void *t_ptr, size_t t_size_in_bytes) {
+  (void)t_ptr;
+  return malloc(t_size_in_bytes);
+}
+
+void allocator_libc_free(void *t_ptr, void *t_buffer) {
+  (void)t_ptr;
+  free(t_buffer);
+}
+
+static allocator libc_allocator = {allocator_libc_malloc, allocator_libc_free};
+static allocator arena_allocator = {allocator_arena_alloc,
+                                    allocator_arena_free};
 
 int main() {
   Arena default_arena = {nullptr, nullptr};
 
-  char *str = (char *)arena_alloc(&default_arena, 256);
-  strcpy(str, "Hello World!\n");
+  char *str = (char *)libc_allocator.alloc(&default_arena, 256);
+  strcpy(str, "Hello World!");
   printf("%s\n", str);
+  libc_allocator.free(nullptr, str);
+
   // Even though we are accessing memory completely out of the bounds
   // of the region, where the string has been allocated, the statement
-  // below yet does not cause any error. This is not still recommended
-  // to do though, because this is acttually an undefined behaviour :)
+  // below yet does not cause any error. this is not still recommmended
+  // to do though, because this is actually an undefined behaviour :)
   // str[70000] = nullptr;
 
-  char *str2 = (char *)arena_alloc(&default_arena, DEFAULT_CHUNK_MAX_COUNT * 8);
-  size_t i;
-  for (i = 0; i < (DEFAULT_CHUNK_MAX_COUNT * 8) - 1; ++i) {
-    str2[i] = 'H';
+  char *name =
+      (char *)arena_allocator.alloc(&default_arena, strlen("Rakhiel Reza"));
+  strcpy(name, "Rakhiel Reza");
+  printf("%s, %p\n", name, name);
+
+  int *arr = arena_alloc_arr(&default_arena, int, 100);
+  for (int i = 0; i < 100; ++i) {
+    arr[i] = i + 1;
   }
-  str2[i] = '\0';
-  // strcpy(str2, "Hello World again!\n");
-  printf("%s\n", str2);
 
-  char *str3 =
-      (char *)arena_alloc(&default_arena, DEFAULT_CHUNK_MAX_COUNT * 10);
-  strcpy(str3, "This is getting too much though -.- \n");
-  printf("%s\n", str3);
+  Player *player1 = arena_alloc_struct(&default_arena, Player);
+  player1->name = "Mustafizur Rahman";
+  player1->age = 28;
+  printf("\nPlayer name: %s\n", player1->name);
+  printf("Player age: %u\n", player1->age);
 
-  arena_reset(&default_arena);
-  arena_free(&default_arena);
+  Player *players[3];
+  for (int i = 0; i < 3; ++i) {
+    players[i] = arena_alloc_struct(&default_arena, Player);
+  }
+  players[0]->name = "Mushfiqur Rahim";
+  players[0]->age = 36;
+  players[1]->name = "Mahmudullah Riyad";
+  players[1]->age = 39;
+  players[2]->name = "Dinesh Karthik";
+  players[2]->age = 38;
+  for (int i = 0; i < 3; ++i) {
+    printf("Player name: %s\n", players[i]->name);
+    printf("Player age: %u\n", players[i]->age);
+  }
+  printf("\n");
+
+  name = (char *)arena_realloc(&default_arena, name, strlen("Rakhiel Reza"),
+                               strlen("Ritchiel Reza"));
+  strcpy(name, "Ritchiel Reza");
+  printf("%s, %p\n", name, name);
+
+  arena_allocator.free(nullptr, &default_arena);
 
   return 0;
 }
