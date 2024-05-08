@@ -7,6 +7,8 @@
 #define ARENA_ALLOCATOR_IMPLEMENTATION
 #include "../arena_allocator/arena_allocator.h"
 
+#define nullptr (void *)0
+
 #pragma GCC diagnostic ignored "-Wincompatible-pointer-types"
 
 void *arena_allocator_alloc(void *t_arena, size_t t_size_in_bytes) {
@@ -48,7 +50,7 @@ void *libc_realloc(void *t_ctx, void *t_old_ptr, size_t t_old_size_in_bytes,
 int main() {
   Arena arena = {nullptr, nullptr};
   rit_dyn_arr_allocator ctx_allocator = {libc_malloc, libc_free, libc_realloc,
-                                         NULL};
+                                         nullptr};
 
   rit_dyn_arr(int, arr, 10, &ctx_allocator);
   for (int i = 0; i < 10; ++i) {
