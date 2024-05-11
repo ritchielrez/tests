@@ -90,7 +90,7 @@ int main() {
   for (int *it = rit_dyn_arr_begin(arr2); it < rit_dyn_arr_end(arr2); it++) {
     printf("%d ", *it);
   }
-  rit_dyn_arr_swap(&arr, &arr2);
+  rit_dyn_arr_swap(arr, arr2);
   printf("\n[After swap]\n1st array: \n");
   rit_dyn_arr_for_each(it, arr) { printf("%d ", *it); }
   printf("\n2nd array: \n");
