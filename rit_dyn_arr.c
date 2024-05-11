@@ -57,11 +57,11 @@ int main() {
     rit_dyn_arr_set(arr, i, i + 1);
     printf("%d\n", rit_dyn_arr_at(arr, i));
   }
-  rit_dyn_arr_push_back(&arr, 11, &ctx_allocator);
-  rit_dyn_arr_pop_back(&arr);
-  rit_dyn_arr_insert(&arr, 2, 69, &ctx_allocator);
-  rit_dyn_arr_erase(&arr, 1);
-  rit_dyn_arr_resize(&arr, 3, 0, &ctx_allocator);
+  rit_dyn_arr_push_back(arr, 11, &ctx_allocator);
+  rit_dyn_arr_pop_back(arr);
+  rit_dyn_arr_insert(arr, 2, 69, &ctx_allocator);
+  rit_dyn_arr_erase(arr, 1);
+  rit_dyn_arr_resize(arr, 3, 0, &ctx_allocator);
   for (int *it = rit_dyn_arr_begin(arr); it < rit_dyn_arr_end(arr); it++) {
     printf("%d\n", *it);
   }
@@ -81,7 +81,7 @@ int main() {
   for (int *it = rit_dyn_arr_begin(arr); it < rit_dyn_arr_end(arr); it++) {
     printf("%d ", *it);
   }
-  rit_dyn_arr_resize(&arr, 30, 1, &ctx_allocator);
+  rit_dyn_arr_resize(arr, 30, 1, &ctx_allocator);
   printf("\n[Before swap]\n1st array: \n");
   for (int *it = rit_dyn_arr_begin(arr); it < rit_dyn_arr_end(arr); it++) {
     printf("%d ", *it);
@@ -97,7 +97,7 @@ int main() {
   rit_dyn_arr_for_each(it, arr2) { printf("%d ", *it); }
 
   rit_dyn_arr(int, arr3, 0, &ctx_allocator);
-  rit_dyn_arr_copy(&arr, &arr3, &ctx_allocator);
+  rit_dyn_arr_copy(arr, arr3, &ctx_allocator);
   printf("\n3rd array(copy of the 1st one): \n");
   rit_dyn_arr_for_each(it, arr3) { printf("%d ", *it); }
 }
